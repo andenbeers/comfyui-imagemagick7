@@ -53,7 +53,9 @@ RUN wget https://imagemagick.org/archive/releases/ImageMagick-7.1.1-39.tar.xz &&
 # -----------------------
 # Install Ollama
 # -----------------------
-RUN curl -fsSL https://ollama.com/install.sh | sh
+# Install Ollama (binary only, no systemd)
+RUN curl -L https://ollama.com/download/ollama-linux-amd64 -o /usr/local/bin/ollama && \
+    chmod +x /usr/local/bin/ollama
 
 ENV OLLAMA_MODELS=/workspace/ollama
 # -----------------------
