@@ -48,12 +48,14 @@ echo "🧠 Ollama version:"
 # -----------------------
 echo "🧠 Starting Ollama (API + GPU mode)..."
 
-export CUDA_VISIBLE_DEVICES=all
-export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib64:$LD_LIBRARY_PATH
-export PATH=/usr/local/cuda/bin:$PATH
-export OLLAMA_DEBUG=1
-export OLLAMA_HOST=0.0.0.0:11434
+export CUDA_VISIBLE_DEVICES=0
+export OLLAMA_NEW_ENGINE=1
+export OLLAMA_LLM_LIBRARY=cuda
+export OLLAMA_FLASH_ATTENTION=1
 
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib64:/usr/local/nvidia/lib:$LD_LIBRARY_PATH
+
+OLLAMA_DEBUG=1 \
 "$BIN" serve > /workspace/ollama.log 2>&1 &
 OLLAMA_PID=$!
 
