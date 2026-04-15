@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 cd /workspace
 
@@ -21,31 +21,53 @@ export OLLAMA_MODELS="$OLLAMA_DIR"
 export PATH="$BIN_DIR:$PATH"
 
 # -----------------------
-# Install Ollama (once)
+# Install Ollama
 # -----------------------
 if [ ! -x "$BIN" ]; then
   echo "📦 Installing Ollama..."
+
   curl -fsSL https://ollama.com/install.sh | sh
-  cp /usr/local/bin/ollama "$BIN"
+
+  # Try to locate installed binary
+  if [ -f /usr/local/bin/ollama ]; then
+    cp /usr/local/bin/ollama "$BIN"
+  elif command -v ollama >/dev/null 2>&1; then
+    cp "$(command -v ollama)" "$BIN"
+  else
+    echo "❌ Ollama install failed"
+    exit 1
+  fi
+
   chmod +x "$BIN"
 fi
 
-echo "Ollama version:"
-"$BIN" --version || true
+echo "🧠 Ollama version:"
+"$BIN" --version || { echo "❌ Ollama not working"; exit 1; }
 
 # -----------------------
 # Start Ollama
 # -----------------------
 echo "🧠 Starting Ollama..."
-export CUDA_VISIBLE_DEVICES=0   # ⚠️ change to 1 if your GPU is index 1
+
+export CUDA_VISIBLE_DEVICES=0   # change if needed
 export OLLAMA_NUM_GPU=999
 export OLLAMA_GPU_LAYERS=999
-"$BIN" serve > /workspace/ollama.log 2>&1 &
 
-sleep 5
+"$BIN" serve > /workspace/ollama.log 2>&1 &
+OLLAMA_PID=$!
+
+sleep 3
+
+if ! ps -p $OLLAMA_PID > /dev/null; then
+  echo "❌ Ollama failed to start"
+  tail -n 100 /workspace/ollama.log
+  exit 1
+fi
+
+echo "✅ Ollama running (PID: $OLLAMA_PID)"
 
 # -----------------------
-# Install ComfyUI (correct way)
+# Install ComfyUI
 # -----------------------
 if [ ! -d "$COMFY_DIR" ]; then
   echo "📦 Installing ComfyUI..."
@@ -65,7 +87,7 @@ else
 fi
 
 # -----------------------
-# Verify install
+# Verify ComfyUI
 # -----------------------
 if [ ! -f "$COMFY_DIR/main.py" ]; then
   echo "❌ ComfyUI install failed!"
@@ -73,13 +95,16 @@ if [ ! -f "$COMFY_DIR/main.py" ]; then
 fi
 
 # -----------------------
-# Install custom nodes
+# Custom nodes
 # -----------------------
 echo "🔌 Installing custom nodes..."
 cd "$COMFY_DIR/custom_nodes"
 
-[ ! -d "comfyui-model-downloader" ] && git clone https://github.com/dsigmabcn/comfyui-model-downloader.git
-[ ! -d "ComfyUI-RunpodDirect" ] && git clone https://github.com/MadiatorLabs/ComfyUI-RunpodDirect.git
+[ ! -d "comfyui-model-downloader" ] && \
+  git clone https://github.com/dsigmabcn/comfyui-model-downloader.git
+
+[ ! -d "ComfyUI-RunpodDirect" ] && \
+  git clone https://github.com/MadiatorLabs/ComfyUI-RunpodDirect.git
 
 # -----------------------
 # Start ComfyUI
@@ -89,20 +114,48 @@ echo "🎨 Starting ComfyUI..."
 cd "$COMFY_DIR"
 source venv/bin/activate
 
-python main.py --listen 0.0.0.0 --port 8188 > /workspace/comfyui.log 2>&1 &
+python main.py --listen 0.0.0.0 --port 8188 \
+  > /workspace/comfyui.log 2>&1 &
 
-# -----------------------
-# Final status
-# -----------------------
+COMFY_PID=$!
+
 sleep 5
 
+if ! ps -p $COMFY_PID > /dev/null; then
+  echo "❌ ComfyUI crashed on startup"
+  echo "===== LOGS ====="
+  tail -n 200 /workspace/comfyui.log
+  exit 1
+fi
+
+echo "✅ ComfyUI running (PID: $COMFY_PID)"
+
+# -----------------------
+# Final status check
+# -----------------------
 echo "========================="
-echo "✅ ALL SERVICES RUNNING"
+echo "🔍 Service Status"
+echo "========================="
+
+if ps -p $OLLAMA_PID > /dev/null; then
+  echo "🧠 Ollama OK"
+else
+  echo "❌ Ollama DOWN"
+  tail -n 50 /workspace/ollama.log
+fi
+
+if ps -p $COMFY_PID > /dev/null; then
+  echo "🎨 ComfyUI OK"
+else
+  echo "❌ ComfyUI DOWN"
+  tail -n 50 /workspace/comfyui.log
+fi
+
+echo "========================="
 echo "🌐 ComfyUI: http://<your-runpod-ip>:8188"
-echo "🧠 Ollama running"
 echo "========================="
 
 # -----------------------
-# Keep container alive
+# Keep alive
 # -----------------------
 tail -f /dev/null
