@@ -1,22 +1,11 @@
 #!/bin/bash
-
-# -- Installation Script ---
-# This script handles the full installation of ComfyUI,
-# and comfyui-model-downloader
-
-# Change to the /workspace directory to ensure all files are downloaded correctly.
-cd /workspace
-#!/bin/bash
-
 set -e
 
 cd /workspace
 
 # -----------------------
-# Ollama persistent install
+# Ollama persistent setup
 # -----------------------
-cd /workspace
-
 OLLAMA_DIR="/workspace/ollama"
 BIN_DIR="/workspace/ollama-bin"
 BIN="$BIN_DIR/ollama"
@@ -26,60 +15,67 @@ mkdir -p "$OLLAMA_DIR" "$BIN_DIR"
 export OLLAMA_MODELS="$OLLAMA_DIR"
 export PATH="$BIN_DIR:$PATH"
 
-# install ONLY if missing or broken
-if [ ! -x "$BIN" ] || ! file "$BIN" | grep -q "ELF"; then
-  echo "Installing Ollama properly..."
-
+# -----------------------
+# Install Ollama (only once)
+# -----------------------
+if [ ! -x "$BIN" ]; then
+  echo "Installing Ollama..."
   curl -fsSL https://ollama.com/install.sh | sh
 
-  # move binary into workspace so it persists
   cp /usr/local/bin/ollama "$BIN"
   chmod +x "$BIN"
 fi
 
-echo "Ollama version check:"
+echo "Ollama version:"
 "$BIN" --version
 
 # -----------------------
 # Start Ollama
 # -----------------------
 echo "Starting Ollama..."
-ollama serve > /workspace/ollama.log 2>&1 &
+"$BIN" serve > /workspace/ollama.log 2>&1 &
 
 sleep 5
 
 # -----------------------
-# Pull model (ONLY if missing)
+# Install ComfyUI (only once)
 # -----------------------
-if [ ! -d "$OLLAMA_DIR/models" ] || [ -z "$(ls -A $OLLAMA_DIR/models 2>/dev/null)" ]; then
-  echo "Pulling model..."
-  ollama pull qwen2.5:14b-instruct-q8_0
+if [ ! -d "/workspace/ComfyUI" ]; then
+  echo "Installing ComfyUI..."
+  wget https://github.com/ltdrdata/ComfyUI-Manager/raw/main/scripts/install-comfyui-venv-linux.sh -O install-comfyui-venv-linux.sh
+  chmod +x install-comfyui-venv-linux.sh
+  ./install-comfyui-venv-linux.sh
 fi
 
-# Pull your model
-# Download and install ComfyUI using the ComfyUI-Manager script.
-echo "Installing ComfyUI and ComfyUI Manager..."
-wget https://github.com/ltdrdata/ComfyUI-Manager/raw/main/scripts/install-comfyui-venv-linux.sh -O install-comfyui-venv-linux.sh
-chmod +x install-comfyui-venv-linux.sh
-./install-comfyui-venv-linux.sh
+# -----------------------
+# Configure ComfyUI network
+# -----------------------
+if ! grep -q -- "--listen" /workspace/run_gpu.sh; then
+  echo "Configuring ComfyUI for network access..."
+  sed -i '$ s/$/ --listen /' /workspace/run_gpu.sh
+fi
 
-# Add the --listen flag to the run_gpu.sh script for network access.
-echo "Configuring ComfyUI for network access..."
-sed -i "$ s/$/ --listen /" /workspace/run_gpu.sh
 chmod +x /workspace/run_gpu.sh
 
-# Installing comfyui-model-downloader nodes.
-echo "clone comfyui-model-downloader"
-git -C /workspace/ComfyUI/custom_nodes clone https://github.com/dsigmabcn/comfyui-model-downloader.git
+# -----------------------
+# Install custom nodes (only once)
+# -----------------------
+cd /workspace/ComfyUI/custom_nodes
 
-# Installing ComfyUI-RunpodDirect.
-echo "clone ComfyUI-RunpodDirect"
-git -C /workspace/ComfyUI/custom_nodes clone https://github.com/MadiatorLabs/ComfyUI-RunpodDirect.git
+[ ! -d "comfyui-model-downloader" ] && git clone https://github.com/dsigmabcn/comfyui-model-downloader.git
+[ ! -d "ComfyUI-RunpodDirect" ] && git clone https://github.com/MadiatorLabs/ComfyUI-RunpodDirect.git
 
-# Clean up the installation scripts.
-echo "Cleaning up..."
-rm install_script.sh run_cpu.sh install-comfyui-venv-linux.sh
+# -----------------------
+# Start services
+# -----------------------
+echo "Starting services..."
 
-# Start the main Runpod service and the ComfyUI service in the background.
-echo "Starting ComfyUI and Runpod services..."
-(/start.sh & /workspace/run_gpu.sh)
+/start.sh &
+/workspace/run_gpu.sh &
+
+echo "✅ Everything is running"
+
+# -----------------------
+# KEEP CONTAINER ALIVE
+# -----------------------
+tail -f /dev/null
