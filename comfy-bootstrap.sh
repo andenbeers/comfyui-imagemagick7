@@ -13,31 +13,32 @@ set -e
 cd /workspace
 
 # -----------------------
-# Persistent paths
+# Ollama persistent install
 # -----------------------
-OLLAMA_DIR="/workspace/ollama"
-OLLAMA_BIN_DIR="/workspace/ollama-bin"
-OLLAMA_BIN="$OLLAMA_BIN_DIR/ollama"
+cd /workspace
 
-mkdir -p "$OLLAMA_DIR"
-mkdir -p "$OLLAMA_BIN_DIR"
+OLLAMA_DIR="/workspace/ollama"
+BIN_DIR="/workspace/ollama-bin"
+BIN="$BIN_DIR/ollama"
+
+mkdir -p "$OLLAMA_DIR" "$BIN_DIR"
 
 export OLLAMA_MODELS="$OLLAMA_DIR"
+export PATH="$BIN_DIR:$PATH"
 
-# -----------------------
-# Install Ollama (ONLY if missing)
-# -----------------------
-if [ ! -f "$OLLAMA_BIN" ]; then
-  echo "Installing Ollama to workspace..."
+# install ONLY if missing or broken
+if [ ! -x "$BIN" ] || ! file "$BIN" | grep -q "ELF"; then
+  echo "Installing Ollama properly..."
 
-  curl -L https://ollama.com/download/ollama-linux-amd64 \
-    -o "$OLLAMA_BIN"
+  curl -fsSL https://ollama.com/install.sh | sh
 
-  chmod +x "$OLLAMA_BIN"
+  # move binary into workspace so it persists
+  cp /usr/local/bin/ollama "$BIN"
+  chmod +x "$BIN"
 fi
 
-# Add to PATH
-export PATH="$OLLAMA_BIN_DIR:$PATH"
+echo "Ollama version check:"
+"$BIN" --version
 
 # -----------------------
 # Start Ollama
