@@ -63,6 +63,7 @@ export OLLAMA_FLASH_ATTENTION=1
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib64:/usr/local/nvidia/lib:${LD_LIBRARY_PATH:-}
 
 OLLAMA_DEBUG=1 \
+OLLAMA_HOST=0.0.0.0:11434 \
 "$BIN" serve > /workspace/ollama.log 2>&1 &
 OLLAMA_PID=$!
 sleep 5
