@@ -7,6 +7,13 @@
 # Change to the /workspace directory to ensure all files are downloaded correctly.
 cd /workspace
 
+ollama serve &
+
+# Wait for it to be ready
+sleep 5
+
+# Pull your model
+ollama pull qwen2.5:14b-instruct-q8_0 &
 # Download and install ComfyUI using the ComfyUI-Manager script.
 echo "Installing ComfyUI and ComfyUI Manager..."
 wget https://github.com/ltdrdata/ComfyUI-Manager/raw/main/scripts/install-comfyui-venv-linux.sh -O install-comfyui-venv-linux.sh
