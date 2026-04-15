@@ -48,7 +48,9 @@ echo "🧠 Ollama version:"
 # -----------------------
 echo "🧠 Starting Ollama (API + GPU mode)..."
 
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=1
+export NVIDIA_VISIBLE_DEVICES=all
+export NVIDIA_DRIVER_CAPABILITIES=compute,utility
 export OLLAMA_NEW_ENGINE=1
 export OLLAMA_LLM_LIBRARY=cuda
 export OLLAMA_FLASH_ATTENTION=1
