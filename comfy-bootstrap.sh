@@ -37,17 +37,17 @@ if [ "$FILESIZE" -lt 1000000 ]; then
   exit 1
 fi
 
-# Extract to /usr (puts binary at /usr/bin/ollama)
+# Extract to /usr
+# This puts the binary at /usr/bin/ollama AND CUDA runners at /usr/lib/ollama/
 tar --use-compress-program=unzstd -xf /tmp/ollama.tar.zst -C /usr
 rm /tmp/ollama.tar.zst
 
-# Copy to workspace bin dir (this is what RunPod actually runs)
-cp /usr/bin/ollama "$BIN"
-chmod +x "$BIN"
+# Confirm CUDA runners were extracted
+echo "🔍 Checking for CUDA runners in /usr/lib/ollama/..."
+ls /usr/lib/ollama/ 2>/dev/null || echo "⚠️  /usr/lib/ollama/ is empty or missing"
 
-# Verify CUDA linkage
-echo "🔍 Verifying CUDA linkage..."
-ldd "$BIN" | grep -i cuda || echo "⚠️  No CUDA linkage found in binary — may still work via runtime discovery"
+# Symlink (not copy!) into workspace bin dir so the binary can still find /usr/lib/ollama/
+ln -sf /usr/bin/ollama "$BIN"
 
 echo "🧠 Ollama version:"
 "$BIN" --version || { echo "❌ Ollama not working"; exit 1; }
