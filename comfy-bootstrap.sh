@@ -37,6 +37,9 @@ echo "Ollama version:"
 # Start Ollama
 # -----------------------
 echo "🧠 Starting Ollama..."
+export CUDA_VISIBLE_DEVICES=0   # ⚠️ change to 1 if your GPU is index 1
+export OLLAMA_NUM_GPU=999
+export OLLAMA_GPU_LAYERS=999
 "$BIN" serve > /workspace/ollama.log 2>&1 &
 
 sleep 5
