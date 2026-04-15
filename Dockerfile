@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     git \
     dos2unix \
+    zstd \
     libjpeg-dev \
     libpng-dev \
     libtiff-dev \
