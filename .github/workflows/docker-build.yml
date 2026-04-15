@@ -25,7 +25,7 @@ jobs:
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
-        username: andyscoming
+        username: andenbeers
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Login to Docker Hub
@@ -42,5 +42,5 @@ jobs:
         no-cache: true
         push: true
         tags: |
-          ghcr.io/andyscoming/comfyui-imagemagick7:latest
+          ghcr.io/andenbeers/comfyui-imagemagick7:latest
           ${{ secrets.DOCKERHUB_USERNAME }}/comfyui-im7:latest
