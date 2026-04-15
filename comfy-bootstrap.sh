@@ -6,10 +6,8 @@
 
 # Change to the /workspace directory to ensure all files are downloaded correctly.
 cd /workspace
-
-ollama serve &
-
-# Wait for it to be ready
+mkdir -p ollama
+OLLAMA_MODELS=/workspace/ollama ollama serve &
 sleep 5
 
 # Pull your model
