@@ -52,6 +52,7 @@ RUN wget https://imagemagick.org/archive/releases/ImageMagick-7.1.1-39.tar.xz &&
     cd / && rm -rf /tmp/ImageMagick-7.1.1-39*
 
 ENV OLLAMA_MODELS=/workspace/ollama
+ENV PATH="/workspace/ollama-bin:$PATH"
 # -----------------------
 # Create workspace folder
 # -----------------------
