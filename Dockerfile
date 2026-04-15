@@ -1,5 +1,4 @@
 FROM runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
-
 ENV DEBIAN_FRONTEND=noninteractive
 
 # -----------------------
@@ -35,6 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev \
     liblzma-dev \
     ca-certificates \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # -----------------------
@@ -51,6 +51,11 @@ RUN wget https://imagemagick.org/archive/releases/ImageMagick-7.1.1-39.tar.xz &&
     cd / && rm -rf /tmp/ImageMagick-7.1.1-39*
 
 # -----------------------
+# Install Ollama
+# -----------------------
+RUN curl -fsSL https://ollama.com/install.sh | sh
+
+# -----------------------
 # Create workspace folder
 # -----------------------
 WORKDIR /workspace
@@ -62,7 +67,4 @@ RUN mkdir -p /workspace
 COPY comfy-bootstrap.sh /opt/comfy-bootstrap.sh
 RUN dos2unix /opt/comfy-bootstrap.sh && chmod +x /opt/comfy-bootstrap.sh
 
-# -----------------------
-# Start bootstrap
-# -----------------------
 CMD ["/bin/bash", "/opt/comfy-bootstrap.sh"]
