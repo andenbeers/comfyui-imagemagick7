@@ -6,9 +6,54 @@
 
 # Change to the /workspace directory to ensure all files are downloaded correctly.
 cd /workspace
-mkdir -p ollama
-OLLAMA_MODELS=/workspace/ollama ollama serve &
+#!/bin/bash
+
+set -e
+
+cd /workspace
+
+# -----------------------
+# Persistent paths
+# -----------------------
+OLLAMA_DIR="/workspace/ollama"
+OLLAMA_BIN_DIR="/workspace/ollama-bin"
+OLLAMA_BIN="$OLLAMA_BIN_DIR/ollama"
+
+mkdir -p "$OLLAMA_DIR"
+mkdir -p "$OLLAMA_BIN_DIR"
+
+export OLLAMA_MODELS="$OLLAMA_DIR"
+
+# -----------------------
+# Install Ollama (ONLY if missing)
+# -----------------------
+if [ ! -f "$OLLAMA_BIN" ]; then
+  echo "Installing Ollama to workspace..."
+
+  curl -L https://ollama.com/download/ollama-linux-amd64 \
+    -o "$OLLAMA_BIN"
+
+  chmod +x "$OLLAMA_BIN"
+fi
+
+# Add to PATH
+export PATH="$OLLAMA_BIN_DIR:$PATH"
+
+# -----------------------
+# Start Ollama
+# -----------------------
+echo "Starting Ollama..."
+ollama serve > /workspace/ollama.log 2>&1 &
+
 sleep 5
+
+# -----------------------
+# Pull model (ONLY if missing)
+# -----------------------
+if [ ! -d "$OLLAMA_DIR/models" ] || [ -z "$(ls -A $OLLAMA_DIR/models 2>/dev/null)" ]; then
+  echo "Pulling model..."
+  ollama pull qwen2.5:14b-instruct-q8_0
+fi
 
 # Pull your model
 # Download and install ComfyUI using the ComfyUI-Manager script.
