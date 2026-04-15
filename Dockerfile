@@ -50,20 +50,6 @@ RUN wget https://imagemagick.org/archive/releases/ImageMagick-7.1.1-39.tar.xz &&
     ldconfig && \
     cd / && rm -rf /tmp/ImageMagick-7.1.1-39*
 
-# -----------------------
-# Install Ollama
-# -----------------------
-# Install Ollama (binary only, no systemd)
-RUN set -euo pipefail && \
-    curl -fL \
-    -H "User-Agent: docker-build" \
-    -H "Accept: application/octet-stream" \
-    https://github.com/ollama/ollama/releases/download/v0.3.12/ollama-linux-amd64 \
-    -o /usr/local/bin/ollama && \
-    chmod +x /usr/local/bin/ollama && \
-    file /usr/local/bin/ollama && \
-    /usr/local/bin/ollama --version
-
 ENV OLLAMA_MODELS=/workspace/ollama
 # -----------------------
 # Create workspace folder
