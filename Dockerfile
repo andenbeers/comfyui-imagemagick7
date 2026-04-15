@@ -55,7 +55,10 @@ RUN wget https://imagemagick.org/archive/releases/ImageMagick-7.1.1-39.tar.xz &&
 # -----------------------
 # Install Ollama (binary only, no systemd)
 RUN set -euo pipefail && \
-    curl -fL https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64 \
+    curl -fL \
+    -H "User-Agent: docker-build" \
+    -H "Accept: application/octet-stream" \
+    https://github.com/ollama/ollama/releases/download/v0.3.12/ollama-linux-amd64 \
     -o /usr/local/bin/ollama && \
     chmod +x /usr/local/bin/ollama && \
     file /usr/local/bin/ollama && \
