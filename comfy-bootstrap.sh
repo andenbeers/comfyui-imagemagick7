@@ -47,12 +47,11 @@ echo "🧠 Ollama version:"
 # -----------------------
 # Start Ollama
 # -----------------------
-echo "🧠 Starting Ollama..."
+echo "🧠 Starting Ollama (GPU mode debug)..."
 
-export CUDA_VISIBLE_DEVICES=0   # change if needed
-export OLLAMA_NUM_GPU=999
-export OLLAMA_GPU_LAYERS=999
+export CUDA_VISIBLE_DEVICES=all
 
+OLLAMA_DEBUG=1 \
 "$BIN" serve > /workspace/ollama.log 2>&1 &
 OLLAMA_PID=$!
 
