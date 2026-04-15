@@ -2,7 +2,6 @@
 set -euo pipefail
 
 cd /workspace
-
 echo "========================="
 echo "🚀 Starting setup"
 echo "========================="
@@ -47,11 +46,13 @@ echo "🧠 Ollama version:"
 # -----------------------
 # Start Ollama
 # -----------------------
-echo "🧠 Starting Ollama (GPU mode debug)..."
+echo "🧠 Starting Ollama (API + GPU mode)..."
 
 export CUDA_VISIBLE_DEVICES=all
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+export OLLAMA_DEBUG=1
+export OLLAMA_HOST=0.0.0.0:11434
 
-OLLAMA_DEBUG=1 \
 "$BIN" serve > /workspace/ollama.log 2>&1 &
 OLLAMA_PID=$!
 
