@@ -55,6 +55,7 @@ RUN wget https://imagemagick.org/archive/releases/ImageMagick-7.1.1-39.tar.xz &&
 # -----------------------
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
+ENV OLLAMA_MODELS=/workspace/ollama
 # -----------------------
 # Create workspace folder
 # -----------------------
